@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,7 +40,10 @@ jobs:
           git add nrl-calendar.ics
           if git diff --cached --quiet; then
             echo "No fixture changes."
-          else
-            git commit -m "Update NRL calendar"
-            git push
+            exit 0
           fi
+          git commit -m "Update NRL calendar"
+          # A Pages/README/manual commit may land while this job is running.
+          # Rebase the generated calendar commit onto the newest main before push.
+          git pull --rebase origin main
+          git push origin HEAD:main
